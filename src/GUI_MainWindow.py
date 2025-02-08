@@ -1,32 +1,34 @@
-# import rclpy
+from PyQt5.QtWidgets import QWidget, QLabel, QPushButton
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSignal, QObject
 
-# Currently to ensure that the ui Runs comment the following import and update_gui() method
-from rov_debug_msgs.msg import DecodedData 
+class SignalSender(QObject):
+    signal_sender = pyqtSignal(int)
+
+
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QScrollArea, 
     QGridLayout, QPushButton , QHBoxLayout 
 )
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtGui import QIcon
 
-class SignalSender(QObject):
-    signal_sender = pyqtSignal(int)
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.signal = SignalSender()
+        self.setWindowIcon(QIcon('images\logo.jpg'))
+
         self.labels = {}  
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle("ROV Electrical Debugging")
         self.setGeometry(100, 100, 1000, 800)
-        self.setWindowIcon(QIcon('images\logo.jpg'))
 
         layout = QVBoxLayout()
         scroll = QScrollArea()
         content = QWidget()
+        content.setGeometry(0, 0, 950, 800)
         grid = QGridLayout(content)
         row = 0
 
@@ -91,16 +93,15 @@ class MainWindow(QWidget):
         print(x)
         self.signal.signal_sender.emit(x)
 
-
-    def update_gui(self, msg: DecodedData):
+    def update_gui(self, msg):
         self.labels["ID"].setText(f"ID: {msg.id}")
         self.labels["Valid"].setText(f"Valid: {msg.valid}")
         self.labels["IMU X"].setText(f"IMU X: {msg.imu.acc_x:.2f}")
         self.labels["IMU Y"].setText(f"IMU Y: {msg.imu.acc_y:.2f}")
         self.labels["IMU Z"].setText(f"IMU Z: {msg.imu.acc_z:.2f}")
-        self.labels["IMU Roll"].setText(f"IMU Roll: {msg.imu.roll:.2f}")
-        self.labels["IMU Pitch"].setText(f"IMU Pitch: {msg.imu.pitch:.2f}")
-        self.labels["IMU Yaw"].setText(f"IMU Yaw: {msg.imu.yaw:.2f}")
+        self.labels["IMU Roll"].setText(f"IMU Roll: {msg.imu.imu_roll:.2f}")
+        self.labels["IMU Pitch"].setText(f"IMU Pitch: {msg.imu.imu_pitch:.2f}")
+        self.labels["IMU Yaw"].setText(f"IMU Yaw: {msg.imu.imu_yaw:.2f}")
 
         for i in range(1, 7):
             current = getattr(msg, f"thruster_current_{i}")

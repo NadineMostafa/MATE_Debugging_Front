@@ -4,7 +4,6 @@ from threading import Thread
 from GUI_ROSNode import GUINode
 import rclpy
 
-
 global ros_node
 
 def ros_init():
@@ -12,6 +11,7 @@ def ros_init():
     rclpy.init()
     ros_node = GUINode()
     rclpy.spin(ros_node)
+
 
 if __name__ == "__main__":
     ros_thread = Thread(target=ros_init)
@@ -21,6 +21,7 @@ if __name__ == "__main__":
     window = MainWindow()
 
     window.signal.signal_sender.connect(ros_node.clicked)
+    ros_node.signal_emmitter.custom_signal.connect(window.update_gui)
 
     window.show()
     app.exec_()
