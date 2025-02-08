@@ -19,7 +19,7 @@ class GUINode(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    minimal_publisher = MinimalPublisher()
+    minimal_publisher = GUINode()
 
     rclpy.spin(minimal_publisher)
 
