@@ -1,26 +1,32 @@
+
+import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
-from PyQt6.QtCore import QObject, pyqtSignal
+from std_msgs.msg import Int16
 
 
-class GUI_ROSNode(Node,QObject):
-
-    data_received=pyqtSignal(str)
+class GUINode(Node):
     def __init__(self):
-        Node.__init__(self,'GUI_ROSNode')
-        QObject.__init__(self)
-        self.subscription = self.create_subscription(
-            String,
-            'topic_1',
-            self.listener_callback,
-            10)
-        
-        self.publisher=self.create_publisher(String,'topic_2',10)
+        super().__init__('GUINode')
+        self.publisher_ = self.create_publisher(Int16, 'reset', 10)
 
-    def publish_message(self,gui_data:int):
-         msg=String()
-         msg.data=str(gui_data)
-         self.publisher.publish(msg)
+    def clicked(self, msg = 0):
+        flag = Int16()
+        flag.data = msg
+        self.publisher_.publish(flag)
 
-    def listener_callback(self, msg):
-            self.data_received.emit(msg.data)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    minimal_publisher = MinimalPublisher()
+
+    rclpy.spin(minimal_publisher)
+
+    minimal_publisher.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
+    
