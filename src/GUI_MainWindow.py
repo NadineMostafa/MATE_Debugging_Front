@@ -1,23 +1,28 @@
-import rclpy
-from GUI_ROSNode import GUI_ROSNode
+# import rclpy
+
+# Currently to ensure that the ui Runs comment the following import and update_gui() method
 from rov_debug_msgs.msg import DecodedData 
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QScrollArea, 
     QGridLayout, QPushButton , QHBoxLayout 
 )
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtGui import QIcon
+
+class SignalSender(QObject):
+    signal_sender = pyqtSignal(int)
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.ros_node = None  
+        self.signal = SignalSender()
         self.labels = {}  
         self.initUI()
-        self.initROS()
 
     def initUI(self):
         self.setWindowTitle("ROV Electrical Debugging")
         self.setGeometry(100, 100, 1000, 800)
+        self.setWindowIcon(QIcon('images\logo.jpg'))
 
         layout = QVBoxLayout()
         scroll = QScrollArea()
@@ -71,7 +76,7 @@ class MainWindow(QWidget):
 
         for i in range(1, 5):
             btn = QPushButton(f"Reset {i}")
-            btn.clicked.connect(lambda _, x=i: self.ros_node.publish_message(x))
+            btn.clicked.connect(lambda _, x=i: self.button_pressed(x))
             reset_layout.addWidget(btn)
 
         layout.addLayout(reset_layout)
@@ -82,14 +87,10 @@ class MainWindow(QWidget):
         grid.addWidget(label, row, col)
         self.labels[name] = label
 
-    def initROS(self):
-        self.ros_thread = ROS2Thread()
-        self.ros_thread.node_ready.connect(self.on_ros_node_ready)
-        self.ros_thread.start()
+    def button_pressed(self, x):
+        print(x)
+        self.signal.signal_sender.emit(x)
 
-    def on_ros_node_ready(self, node):
-        self.ros_node = node
-        node.data_received.connect(self.update_gui)
 
     def update_gui(self, msg: DecodedData):
         self.labels["ID"].setText(f"ID: {msg.id}")
@@ -138,14 +139,3 @@ class MainWindow(QWidget):
             )
 
         self.labels["ROV Depth"].setText(f"ROV Depth: {msg.rov_depth:.2f}m")
-
-class ROS2Thread(QThread):
-    node_ready = pyqtSignal(object) 
-
-    def run(self):
-        rclpy.init()
-        self.node = GUI_ROSNode()
-        self.node_ready.emit(self.node) 
-        rclpy.spin(self.node)
-        self.node.destroy_node()
-        rclpy.shutdown()
